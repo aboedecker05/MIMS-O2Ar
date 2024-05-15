@@ -6,8 +6,7 @@ interference" by Boedecker et al.
 More detailed descriptions are in the R script "MIMS Paper Analyses.R"
 
 Libraries needed:
-lmodel2 - for reduced major axis regression
-broom - for interpreting model output
+smatr - for standardized major axis regression
 rstatix - for stats interpretations
 tidyverse and ggpubr - for data visualization
 
@@ -16,8 +15,9 @@ Compiled_Subcategories.csv
 Isotopes.csv
 Isotopes_long.csv
 
-Reduced Major Axis Regression (Figures 1 and 2)
-We used RMA regression because gas measurements from the MIMS both with and without the 
+Standardized Major Axis Regression (Figures 1 and 2)
+[Also known as reduced major axis regression - or RMA]
+We used SMA regression because gas measurements from the MIMS both with and without the 
 furnace have error associated with the terms. They are also autocorrelated because they
 come from the same sample and there is no defined dependent-independent relationship.
 
@@ -25,7 +25,7 @@ Citation:
 Friedman, J., Bohonak, A. J., & Levine, R. A. (2013). When are two pieces better than one: 
 fitting and testing OLS and RMA regressions. Environmetrics, 24(5), 306-316.
 
-For Figure 3, we calcuated the N2:Ar effect size (delta N2:Ar) for each experiment and 
+For Figure 3, we calcuated the ∆N2:Ar for each experiment and 
 graphed the results over the range of O2:Ar. 
 
 Figure 4:
