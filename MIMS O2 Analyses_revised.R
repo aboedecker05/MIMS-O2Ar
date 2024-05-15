@@ -3,8 +3,7 @@
 #to minimize oxygen interference"
 
 #libraries
-library(lmodel2) #for RMA analysis
-library(broom) #for interpreting model output
+library(smatr) #for SMA analysis
 library(rstatix) #for stats interpretations
 library(tidyverse) #data viz
 library(ggpubr) #data viz
@@ -24,38 +23,35 @@ sed <- df %>% filter(Experiment == "Sediment Incubations") %>%
   select(-Lake, -Temp, -Depth)
 
 sed$Treatment <- factor(sed$Treatment, levels = c("SW", "LP", "N", "LP N")) 
-#Reordering since R alphabatizes factors
+#Reordering since R alphabetizes factors
+
 
 #-------------------------------------------------------------------------------
 
-#Reduced Major Axis Regression
+#Standardized Major Axis (SMA) Regression 
 
 ## O2:Ar of separate experiments (will become figure 1)
 #To directly compare O2:Ar and N2:Ar with and without a furnace, we used 
-#reduced major axis regression because O2:Ar and N2:Ar both with and without the 
+#standardized major axis regression because O2:Ar and N2:Ar both with and without the 
 #furnace are measured with error and are correlated since they come from the 
 #same sample, and no dependent-independent variable relationship is defined 
 #(Friedman et al. 2013). 
 
-#O2:Ar OLS, MA, SMA, and RMA Model II Regression for all four experiments
-#using range = "relative" because both the x and y axes have true zeros 
-#(because they're ratios)
+#SMA for O2:Ar
 
-bioO2.m <- lmodel2(formula = O2Ar_F ~ O2Ar_NF, data = bio, range.y = "relative", 
-                   range.x = "relative", nperm = 99)
-gwO2.m <- lmodel2(formula = O2Ar_F ~ O2Ar_NF, data = gw, range.y = "relative", 
-                  range.x = "relative", nperm = 99)
-pfO2.m <- lmodel2(formula = O2Ar_F ~ O2Ar_NF, data = pf, range.y = "relative", 
-                  range.x = "relative", nperm = 99)
-sedO2.m <- lmodel2(formula = O2Ar_F ~ O2Ar_NF, data = sed, range.y = "relative", 
-                   range.x = "relative", nperm = 99)
+bioO2.m <- sma(formula = O2Ar_F ~ O2Ar_NF, data = bio, method = "SMA", slope.test = 1, elev.test = 0)
+bioO2.m
+# SMA slope = 0.916, CI = 0.859-0.976, p = 0.007 (slope), p = 0.024 (intercept)
+gwO2.m <- sma(formula = O2Ar_F ~ O2Ar_NF, data = gw, method = "SMA", slope.test = 1, elev.test = 0)
+gwO2.m
+# SMA slope = 0.949, CI = 0.833-1.081, p = 0.448 (slope), p < 0.001 (intercept)
+pfO2.m <- sma(formula = O2Ar_F ~ O2Ar_NF, data = pf, method = "SMA", slope.test = 1, elev.test = 0)
+pfO2.m
+# SMA slope = 0.999, CI = 0.968-1.030, p = 0.927 (slope), p = 0.906 (intercept)
+sedO2.m <- sma(formula = O2Ar_F ~ O2Ar_NF, data = sed, , method = "SMA", slope.test = 1, elev.test = 0)
+sedO2.m
+# SMA slope = 1.007, CI = 1.002-1.013, p = 0.006 (slope), p = 0.9997 (intercept)
 
-#Using the tidy function from the broom package to read/interpret results
-#Reporting results from the SMA method
-tidy(bioO2.m)
-tidy(gwO2.m)
-tidy(pfO2.m)
-tidy(sedO2.m)
 
 #Bioassay plot
 ggbioO <- ggplot(bio, aes(x = O2Ar_NF, y = O2Ar_F)) +
@@ -69,7 +65,7 @@ ggbioO <- ggplot(bio, aes(x = O2Ar_NF, y = O2Ar_F)) +
   geom_segment(x = 1, y = 2.831, xend = 61, yend = 57.491, linewidth = 1) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", 
               color = "dark gray", linewidth = 0.75) +
-  annotate("text", x=35, y=1, label= "RMA Slope = 0.911, CI = 0.859 - 0.976", 
+  annotate("text", x=35, y=1, label= "SMA Slope = 0.916, CI = 0.859 - 0.976", 
            size = 6) +
   theme(legend.position = c(0.15,0.76), axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
@@ -88,7 +84,7 @@ gggwO <- ggplot(gw, aes(x = O2Ar_NF, y = O2Ar_F)) +
   geom_segment(x = 2, y = 5.45, xend = 18, yend = 20.602, linewidth = 1) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", 
               color = "dark gray", linewidth = 0.75) +
-  annotate("text", x=35, y=1, label= "RMA Slope = 0.949, CI = 0.833 - 1.081", 
+  annotate("text", x=35, y=1, label= "SMA Slope = 0.949, CI = 0.833 - 1.081", 
            size = 6) +
   theme(legend.position = "none", axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
@@ -107,7 +103,7 @@ ggproO <- ggplot(pf, aes(x = O2Ar_NF, y = O2Ar_F)) +
   geom_segment(x = 2, y = 1.967, xend = 37, yend = 36.932, linewidth = 1) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", 
               color = "dark gray", linewidth = 0.75) +
-  annotate("text", x=35, y=1, label= "RMA Slope = 0.999, CI = 0.968 - 1.030", 
+  annotate("text", x=35, y=1, label= "SMA Slope = 0.999, CI = 0.968 - 1.030", 
            size = 6) +
   theme(legend.position = c(0.26,0.8), axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
@@ -126,8 +122,8 @@ ggsedO <- ggplot(sed, aes(x = O2Ar_NF, y = O2Ar_F)) +
                     values = c("#E6E6FA", "#3E3E49", "#0072B2", "#E69F00")) +
   geom_segment(x = 0, y = 1.43E-5, xend = 20.5, yend = 20.644, size = 1) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", 
-              color = "dark gray", size = 0.75) +
-  annotate("text", x=35, y=1, label= "RMA Slope = 1.007, CI = 1.002 - 1.013", 
+              color = "dark gray", linewidth = 0.75) +
+  annotate("text", x=35, y=1, label= "SMA Slope = 1.007, CI = 1.002 - 1.013", 
            size = 6) +
   theme(legend.position = c(0.15,0.75), axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
@@ -140,38 +136,31 @@ allO2 <- ggarrange(ggbioO, gggwO, ggproO, ggsedO,
                    ncol = 2, nrow = 2, align = "hv")
 allO2 <- annotate_figure(allO2, bottom = text_grob(
   bquote(~O[2]*':Ar - Furnace Off'), size = 24), 
-      left = text_grob(bquote(~O[2]*':Ar - Furnace On'), size = 24, rot = 90))
+  left = text_grob(bquote(~O[2]*':Ar - Furnace On'), size = 24, rot = 90))
 
-ggsave("RMA O2Ar All.jpeg", allO2, height = 12, width = 12, units = "in", 
+ggsave("SMA O2Ar All.jpeg", allO2, height = 12, width = 12, units = "in", 
        dpi = 600, bg = "white")
 
 #Sometimes ggsave and annotate_figure encounter a bug that puts the annotation 
-#on a black bar so you can't see it. bg = "white" is a workaround. 
+#on a black bar so you can't see it. bg = "white" is a workaround.
 
+#------------------------------------------------------------------------------#
 
-#-------------------------------------------------------------------------------
+#SMA for N2:Ar
 
-## N2:Ar of separate experiments (will become figure 2)
+bioN2.m <- sma(formula = N2Ar_F ~ N2Ar_NF, data = bio, method = "SMA", slope.test = 1, elev.test = 0)
+bioN2.m
+# SMA slope = 0.934, CI = 0.891-0.980, p = 0.005 (slope), p = 0.007 (intercept)
+gwN2.m <- sma(formula = N2Ar_F ~ N2Ar_NF, data = gw, method = "SMA", slope.test = 1, elev.test = 0)
+gwN2.m
+# SMA slope = 1.009, CI = 0.949-1.074, p = 0.763 (slope), p = 0.745 (intercept)
+pfN2.m <- sma(formula = N2Ar_F ~ N2Ar_NF, data = pf, method = "SMA", slope.test = 1, elev.test = 0)
+pfN2.m
+# SMA slope = 1.205, CI = 1.107-1.312, p < 0.001 (slope), p < 0.001 (intercept)
+sedN2.m <- sma(formula = N2Ar_F ~ N2Ar_NF, data = sed, , method = "SMA", slope.test = 1, elev.test = 0)
+sedN2.m
+# SMA slope = 1.040, CI = 1.008-1.072, p = 0.014 (slope), p = 0.021 (intercept)
 
-#N2:Ar OLS, MA, SMA, and RMA Model II Regression for all four experiments
-#using range = "relative" because both the x and y axes have true zeros 
-#(because they're ratios)
-
-bioN2.m <- lmodel2(formula = N2Ar_F ~ N2Ar_NF, data = bio, range.y = "relative", 
-                   range.x = "relative", nperm = 99)
-gwN2.m <- lmodel2(formula = N2Ar_F ~ N2Ar_NF, data = gw, range.y = "relative", 
-                  range.x = "relative", nperm = 99)
-pfN2.m <- lmodel2(formula = N2Ar_F ~ N2Ar_NF, data = pf, range.y = "relative", 
-                  range.x = "relative", nperm = 99)
-sedN2.m <- lmodel2(formula = N2Ar_F ~ N2Ar_NF, data = sed, range.y = "relative", 
-                   range.x = "relative", nperm = 99)
-
-#Using the tidy function from the broom package to read/interpret results
-#Reporting results from the SMA method
-tidy(bioN2.m)
-tidy(gwN2.m)
-tidy(pfN2.m)
-tidy(sedN2.m)
 
 #Bioassay plot
 ggbioN <- ggplot(bio, aes(x = N2Ar_NF, y = N2Ar_F)) +
@@ -186,7 +175,7 @@ ggbioN <- ggplot(bio, aes(x = N2Ar_NF, y = N2Ar_F)) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", 
               color = "dark gray", linewidth = 0.75) +
   annotate("text", x=39.25, y=30,
-           label= "RMA Slope = 0.937, CI = 0.896 - 0.980", size = 6) +
+           label= "SMA Slope = 0.934, CI = 0.891 - 0.980", size = 6) +
   theme(legend.position = c(0.15,0.78), axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   theme(aspect.ratio = 1) +
@@ -205,7 +194,7 @@ gggwN <- ggplot(gw, aes(x = N2Ar_NF, y = N2Ar_F)) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", 
               color = "dark gray", linewidth = 0.75) +
   annotate("text", family = "Arial", x=39.25, y=30, 
-           label= "RMA Slope = 1.009, CI = 0.949 - 1.073", size = 6) +
+           label= "SMA Slope = 1.009, CI = 0.949 - 1.074", size = 6) +
   theme(legend.position = "none", axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   theme(aspect.ratio = 1) +
@@ -224,7 +213,7 @@ ggproN <- ggplot(pf, aes(x = N2Ar_NF, y = N2Ar_F)) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", 
               color = "dark gray", linewidth = 0.75) +
   annotate("text", family = "Arial", x=39.25, y=30, 
-           label= "RMA Slope = 1.205, CI = 1.107 - 1.312", size = 6) +
+           label= "SMA Slope = 1.205, CI = 1.107 - 1.312", size = 6) +
   theme(legend.position = c(0.26,0.8), axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   theme(aspect.ratio = 1) +
@@ -244,7 +233,7 @@ ggsedN <- ggplot(sed, aes(x = N2Ar_NF, y = N2Ar_F)) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", 
               color = "dark gray", linewidth = 0.75) +
   annotate("text", family = "Arial", x=39.25, y=30, 
-           label= "RMA Slope = 1.040, CI = 1.008 - 1.072", size = 6) +
+           label= "SMA Slope = 1.040, CI = 1.008 - 1.072", size = 6) +
   theme(legend.position = c(0.15,0.75), axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   annotate("text", x = 34.75, y = 46, label= "D) Sediment Incubation", size = 7)
@@ -257,8 +246,9 @@ allN2 <- annotate_figure(allN2, bottom = text_grob(
   bquote(~N[2]*':Ar - Furnace Off'), size = 24), 
   left = text_grob(bquote(~N[2]*':Ar - Furnace On'), size = 24, rot = 90))
 
-ggsave("RMA N2Ar All.jpeg", allN2, height = 12, width = 12, units = "in", 
+ggsave("SMA N2Ar All.jpeg", allN2, height = 12, width = 12, units = "in", 
        dpi = 600, bg = "white")
+
 
 #-------------------------------------------------------------------------------
 
@@ -347,8 +337,8 @@ ggsed
 allbias <- ggarrange(ggbio, gggw, ggpf, ggsed, ncol = 2, nrow = 2, 
                      align = "hv") 
 allbias <- annotate_figure(allbias, bottom = text_grob(bquote(~O[2]*':Ar'), 
-                     size = 24), left = text_grob(bquote(~Delta*N[2]*':Ar'), 
-                                                  size = 24, rot = 90))
+                                                       size = 24), left = text_grob(bquote(~Delta*N[2]*':Ar'), 
+                                                                                    size = 24, rot = 90))
 
 ggsave("N2Ar Diff vs O2Ar_treatment.jpeg", allbias, height = 8, width = 12, 
        units = "in", dpi = 600, bg = "white")
@@ -486,7 +476,7 @@ it3 <- ggplot(it29_28, aes(x = O2Ar, y = diff)) +
   scale_fill_manual(values = "#E6E6FA") +
   scale_x_continuous(limits = c(0,60), breaks = seq(0,60, by = 10)) +
   scale_y_continuous(limits = c(-0.000625,0.000625), 
-          breaks = scales::pretty_breaks(n = 7), labels = scientific_10) +
+                     breaks = scales::pretty_breaks(n = 7), labels = scientific_10) +
   labs(x = NULL, y = bquote(Delta^29*N[2]*':'^28*N[2])) +
   theme_classic(base_size = 18) +
   theme(aspect.ratio = 1, legend.position = "none") +
@@ -499,7 +489,7 @@ it4 <- ggplot(it30_28, aes(x = O2Ar, y = diff)) +
   scale_fill_manual(values = "#E6E6FA") +
   scale_x_continuous(limits = c(0,60), breaks = seq(0,60, by = 10)) +
   scale_y_continuous(limits = c(-6.25E-4,6.25E-4), 
-          breaks = scales::pretty_breaks(n = 7), labels = scientific_10) +
+                     breaks = scales::pretty_breaks(n = 7), labels = scientific_10) +
   labs(x = NULL, y = bquote(Delta^30*N[2]*':'^28*N[2])) +
   theme_classic(base_size = 18) +
   theme(aspect.ratio = 1, legend.position = "none") +
@@ -514,3 +504,152 @@ itfig <- annotate_figure(itfig,
 
 ggsave("Isotope Comps.jpeg", itfig, height = 10, width = 11.5, units = "in", 
        dpi = 600, bg = "white")
+
+#------------------------------------------------------------------------------#
+
+#Looking at histograms of O2:Ar, ∆O2:Ar, N2:Ar, and ∆N2:Ar 
+#Bioassays
+hist(bio$O2Ar_NF)
+hist(bio$O2Ar_F)
+hist(bio$DeltO2Ar)
+hist(bio$N2Ar_NF)
+hist(bio$N2Ar_F)
+hist(bio$DeltN2Ar)
+
+#Groundwater
+hist(gw$O2Ar_NF)
+hist(gw$O2Ar_F)
+hist(gw$DeltO2Ar)
+hist(gw$N2Ar_NF)
+hist(gw$N2Ar_F)
+hist(gw$DeltN2Ar)
+
+#Lake profiles
+hist(pf$O2Ar_NF)
+hist(pf$O2Ar_F)
+hist(pf$DeltO2Ar)
+hist(pf$N2Ar_NF)
+hist(pf$N2Ar_F)
+hist(pf$DeltN2Ar)
+
+#Sediment incubations
+hist(sed$O2Ar_NF)
+hist(sed$O2Ar_F)
+hist(sed$DeltO2Ar)
+hist(sed$N2Ar_NF)
+hist(sed$N2Ar_F)
+hist(sed$DeltN2Ar)
+
+#While O2:Ar and N2:Ar are not normally distributed, ∆O2:Ar and ∆N2:Ar
+#appear to be closer to a normal distribution
+#Check Supplemental Figures 2 and 3 for cleaned up versions of ∆O2:Ar and ∆N2:Ar
+
+#------------------------------------------------------------------------------#
+
+#Supplemental Figures 2 and 3
+#Histograms of ∆O2:Ar and ∆N2:Ar
+
+#∆O2:Ar
+#Bioassay plot
+histbioO <- ggplot(bio) +
+  geom_histogram(aes(x = DeltO2Ar), color = "black", fill = "lightgray", bins = 25) +
+  scale_x_continuous(limits = c(-45,45), breaks = seq(-40,40,20)) +
+  theme_bw(base_size = 16) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  annotate("text", x = -35, y = 49, label = "A) Bioassays", size = 6)
+histbioO
+
+#Groundwater
+histgwO <- ggplot(gw) +
+  geom_histogram(aes(x = DeltO2Ar), color = "black", fill = "lightgray", bins = 25) +
+  scale_x_continuous(limits = c(-15,15), breaks = seq(-12,12,6)) +
+  scale_y_continuous(limits = c(0,30), breaks = seq(0,30,10)) +
+  theme_bw(base_size = 16) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  annotate("text", x = -10.5, y = 30, label = "B) Groundwater", size = 6)
+histgwO
+
+#profiles
+histpfO <- ggplot(pf) +
+  geom_histogram(aes(x = DeltO2Ar), color = "black", fill = "lightgray", bins = 25) +
+  scale_x_continuous(limits = c(-7,7), breaks = seq(-6,6,3)) +
+  scale_y_continuous(limits = c(0,50), breaks = seq(0,50,10)) +
+  theme_bw(base_size = 16) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  annotate("text", x = -5, y = 50, label = "C) Lake Profiles", size = 6)
+histpfO
+
+#Sediment
+histsedO <- ggplot(sed) +
+  geom_histogram(aes(x = DeltO2Ar), color = "black", fill = "lightgray", bins = 25) +
+  scale_x_continuous(limits = c(-2,2), breaks = seq(-2,2,1)) +
+  scale_y_continuous(limits = c(0,90), breaks = seq(0,90,15)) +
+  theme_bw(base_size = 16) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  annotate("text", x = -1.6, y = 90, label = "D) Sediment", size = 6) +
+  annotate("text", x = -1.41, y = 85, label = "Incubations", size = 6)
+histsedO
+
+#Displaying all 4 plots together (using ggpubr)
+histDeltO2 <- ggarrange(histbioO, histgwO, histpfO, histsedO, 
+                   ncol = 2, nrow = 2, align = "hv")
+histDeltO2 <- annotate_figure(histDeltO2, bottom = text_grob(
+  bquote('∆'~O[2]*':Ar'), size = 24), 
+  left = text_grob(bquote('Frequency'), size = 24, rot = 90))
+
+ggsave("Delta O2Ar Histogram.jpeg", histDeltO2, height = 12, width = 12, units = "in", 
+       dpi = 600, bg = "white")
+
+
+
+#∆N2:Ar
+#Bioassay plot
+histbioN <- ggplot(bio) +
+  geom_histogram(aes(x = DeltN2Ar), color = "black", fill = "lightgray", bins = 25) +
+  scale_x_continuous(limits = c(-2,2), breaks = seq(-2,2,1)) +
+  theme_bw(base_size = 16) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  annotate("text", x = -1.55, y = 21, label = "A) Bioassays", size = 6)
+histbioN
+
+#Groundwater
+histgwN <- ggplot(gw) +
+  geom_histogram(aes(x = DeltN2Ar), color = "black", fill = "lightgray", bins = 25) +
+  scale_x_continuous(limits = c(-1.5,1.5), breaks = seq(-1.5,1.5,0.5)) +
+  theme_bw(base_size = 16) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  annotate("text", x = -1.05, y = 43, label = "B) Groundwater", size = 6)
+histgwN
+
+#profiles
+histpfN <- ggplot(pf) +
+  geom_histogram(aes(x = DeltN2Ar), color = "black", fill = "lightgray", bins = 25) +
+  scale_x_continuous(limits = c(-2,2), breaks = seq(-2,2,1)) +
+  theme_bw(base_size = 16) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  annotate("text", x = -1.4, y = 43, label = "C) Lake Profiles", size = 6)
+histpfN
+
+#Sediment
+histsedN <- ggplot(sed) +
+  geom_histogram(aes(x = DeltN2Ar), color = "black", fill = "lightgray", bins = 25) +
+  scale_x_continuous(limits = c(-2,2), breaks = seq(-2,2,1)) +
+  scale_y_continuous(limits = c(0,132), breaks = seq(0,132,25)) +
+  theme_bw(base_size = 16) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  annotate("text", x = -1.6, y = 132, label = "D) Sediment", size = 6) +
+  annotate("text", x = -1.39, y = 125, label = "Incubations", size = 6)
+histsedN
+
+#Displaying all 4 plots together (using ggpubr)
+histDeltN2 <- ggarrange(histbioN, histgwN, histpfN, histsedN, 
+                        ncol = 2, nrow = 2, align = "hv")
+histDeltN2 <- annotate_figure(histDeltN2, bottom = text_grob(
+  bquote('∆'~N[2]*':Ar'), size = 24), 
+  left = text_grob(bquote('Frequency'), size = 24, rot = 90))
+
+ggsave("Delta N2Ar Histogram.jpeg", histDeltN2, height = 12, width = 12, units = "in", 
+       dpi = 600, bg = "white")
+
+
+#-------------------------------------------------------------------------------
